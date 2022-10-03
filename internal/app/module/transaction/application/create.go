@@ -59,9 +59,15 @@ func (h CreateTransactionCommandHandler) Handle(command CreateTransactionCommand
 		h.timeProvider.Now(),
 	)
 
+	events := transaction.PullDomainEvents()
+
 	err = h.repository.Save(transaction)
 
-	go h.domainEventPublisher.Publish(transaction.PullDomainEvents())
+	if err != nil {
+		return err
+	}
+
+	go h.domainEventPublisher.Publish(events)
 
 	return err
 }

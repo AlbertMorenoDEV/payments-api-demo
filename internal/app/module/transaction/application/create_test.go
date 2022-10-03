@@ -24,19 +24,19 @@ func TestCreateTransactionSuccessfully(t *testing.T) {
 		timeProvider,
 		domainEventPublisher,
 	)
-	transactionId, _ := transactionId.New("cb41da86-d70a-4fba-8581-ecad7e06854a")
+	transId, _ := transactionId.New("cb41da86-d70a-4fba-8581-ecad7e06854a")
 	userId, _ := sharedUserId.New("1e8c8912-7caf-43c1-99c7-267082915291")
 	destinationUserId, _ := sharedUserId.New("65739819-9eb7-4593-a53e-46af7eb10b23")
 	amount := money.NewFromPrimitives(4500, "USD")
 	command := application.CreateTransactionCommand{
-		TransactionId:     transactionId.Value(),
+		TransactionId:     transId.Value(),
 		UserId:            userId.Value(),
 		DestinationUserId: destinationUserId.Value(),
 		Amount:            amount.Amount().Int64(),
 		Currency:          amount.Currency().String(),
 	}
 	transaction := domain.NewTransaction(
-		*transactionId,
+		*transId,
 		*userId,
 		*destinationUserId,
 		amount,

@@ -43,8 +43,10 @@ func TestCreateTransactionSuccessfully(t *testing.T) {
 		timeProvider.Now(),
 	)
 	transaction.PullDomainEvents()
+	events := sharedDomain.DomainEvents{domain.NewTransactionCreated(*transaction)}
 
 	transactionRepository.ShouldSaveTransaction(transaction)
+	domainEventPublisher.ShouldPublishDomainEvents(t, events)
 
 	err := handler.Handle(command)
 
@@ -81,4 +83,27 @@ func (p *DomainEventPublisherMock) Publish(events sharedDomain.DomainEvents) {
 
 func (p *DomainEventPublisherMock) Wg() *sync.WaitGroup {
 	return &p.wg
+}
+
+func (p *DomainEventPublisherMock) ShouldPublishDomainEvents(t *testing.T, events sharedDomain.DomainEvents) {
+	p.wg.Add(1)
+	p.
+		On("Publish", mock.MatchedBy(func(received sharedDomain.DomainEvents) bool {
+			assert.Len(t, received, len(events), "Invalid number of events received")
+
+			for i := range events {
+				domainEvent := events[i].(sharedDomain.DomainEvent)
+				assert.Equal(t, domainEvent.CreatedAt(), received[i].CreatedAt(), "Wrong created at value")
+				assert.Equal(t, domainEvent.Name(), received[i].Name(), "Wrong name value")
+				assert.Equal(t, domainEvent.AggregateId(), received[i].AggregateId(), "Wrong aggregate ID")
+				assert.Equal(t, domainEvent.Data(), received[i].Data(), "Wrong data")
+			}
+
+			return true
+		})).
+		Once().
+		Run(func(args mock.Arguments) {
+			p.wg.Done()
+		}).
+		Return(nil)
 }

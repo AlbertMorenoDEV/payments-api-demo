@@ -19,9 +19,7 @@ func BuildRouter(services *infrastructure.Services) http.Handler {
 	r.HandleFunc(
 		"/users/{user_id}/transactions",
 		transactionUi.PostTransactionHandler(
-			services.TransactionRepository(),
-			services.TimeProvider(),
-			services.DomainEventPublisher(),
+			services.CommandBus(),
 			services.Logger(),
 		),
 	).Methods(http.MethodPost)

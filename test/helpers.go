@@ -54,7 +54,7 @@ func dbSetUp() {
 	}
 	defer db.Close()
 
-	if _, err = db.Exec(`CREATE TABLE users_balance (
+	if _, err = db.Exec(`CREATE TABLE IF NOT EXISTS users_balance (
 	  user_id varchar(36) NOT NULL,
 	  amount int NOT NULL,
 	  currency char(3) NOT NULL,
@@ -63,7 +63,7 @@ func dbSetUp() {
 		panic(err)
 	}
 
-	if _, err = db.Exec(`CREATE TABLE transactions (
+	if _, err = db.Exec(`CREATE TABLE IF NOT EXISTS transactions (
 	  transaction_id varchar(36) NOT NULL,
 	  user_id varchar(36) NOT NULL,
 	  destination_user_id varchar(36) NOT NULL,

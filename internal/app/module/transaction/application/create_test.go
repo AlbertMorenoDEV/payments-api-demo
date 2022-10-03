@@ -1,6 +1,7 @@
 package application_test
 
 import (
+	"context"
 	"github.com/AlbertMorenoDEV/payments-api-demo/internal/app/module/transaction/application"
 	"github.com/AlbertMorenoDEV/payments-api-demo/internal/app/module/transaction/domain"
 	transactionId "github.com/AlbertMorenoDEV/payments-api-demo/internal/app/module/transaction/domain/transaction-id"
@@ -44,11 +45,12 @@ func TestCreateTransactionSuccessfully(t *testing.T) {
 	)
 	transaction.PullDomainEvents()
 	events := sharedDomain.DomainEvents{domain.NewTransactionCreated(*transaction)}
+	ctx := context.Background()
 
 	transactionRepository.ShouldSaveTransaction(transaction)
 	domainEventPublisher.ShouldPublishDomainEvents(t, events)
 
-	err := handler.Handle(command)
+	err := handler.Handle(ctx, command)
 
 	assert.NoError(t, err)
 	domainEventPublisher.Wg().Wait()

@@ -5,18 +5,15 @@ import (
 	"github.com/AlbertMorenoDEV/payments-api-demo/internal/app/module/transaction/application"
 	"github.com/AlbertMorenoDEV/payments-api-demo/internal/app/module/transaction/domain"
 	transactionId "github.com/AlbertMorenoDEV/payments-api-demo/internal/app/module/transaction/domain/transaction-id"
-	sharedApplication "github.com/AlbertMorenoDEV/payments-api-demo/internal/pkg/application"
-	sharedDomain "github.com/AlbertMorenoDEV/payments-api-demo/internal/pkg/domain"
 	sharedUserId "github.com/AlbertMorenoDEV/payments-api-demo/internal/pkg/domain/user-id"
+	"github.com/AlbertMorenoDEV/payments-api-demo/pkg/command"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"net/http"
 )
 
 func PostTransactionHandler(
-	repository domain.TransactionRepository,
-	timeProvider sharedApplication.TimeProvider,
-	domainEventPublisher sharedDomain.DomainEventPublisher,
+	commandBus command.Bus,
 	logger *zap.Logger,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -34,9 +31,7 @@ func PostTransactionHandler(
 			return
 		}
 
-		ch := application.NewCreateTransactionCommandHandler(repository, timeProvider, domainEventPublisher)
-
-		err := ch.Handle(c)
+		err := commandBus.Dispatch(r.Context(), c)
 
 		switch err.(type) {
 		case nil:

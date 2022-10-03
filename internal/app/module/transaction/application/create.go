@@ -1,12 +1,16 @@
 package application
 
 import (
+	"context"
+	"fmt"
 	"github.com/AlbertMorenoDEV/payments-api-demo/internal/app/module/transaction/domain"
 	transactionId "github.com/AlbertMorenoDEV/payments-api-demo/internal/app/module/transaction/domain/transaction-id"
 	"github.com/AlbertMorenoDEV/payments-api-demo/internal/pkg/application"
 	sharedDomain "github.com/AlbertMorenoDEV/payments-api-demo/internal/pkg/domain"
 	"github.com/AlbertMorenoDEV/payments-api-demo/internal/pkg/domain/money"
 	sharedUserId "github.com/AlbertMorenoDEV/payments-api-demo/internal/pkg/domain/user-id"
+	"github.com/AlbertMorenoDEV/payments-api-demo/pkg/command"
+	"reflect"
 )
 
 type CreateTransactionCommand struct {
@@ -15,6 +19,10 @@ type CreateTransactionCommand struct {
 	DestinationUserId string `json:"destination_user_id"`
 	Amount            int64  `json:"amount"`
 	Currency          string `json:"currency"`
+}
+
+func (c CreateTransactionCommand) CommandName() string {
+	return "create_transaction_command"
 }
 
 type CreateTransactionCommandHandler struct {
@@ -35,18 +43,23 @@ func NewCreateTransactionCommandHandler(
 	}
 }
 
-func (h CreateTransactionCommandHandler) Handle(command CreateTransactionCommand) error {
-	transId, err := transactionId.New(command.TransactionId)
+func (h CreateTransactionCommandHandler) Handle(_ context.Context, command command.Command) error {
+	createTransactionCommand, ok := command.(CreateTransactionCommand)
+	if !ok {
+		return fmt.Errorf("invalid command, expected <CreateTransactionCommand> and got <%s>", reflect.TypeOf(command))
+	}
+
+	transId, err := transactionId.New(createTransactionCommand.TransactionId)
 	if err != nil {
 		return err
 	}
 
-	userId, err := sharedUserId.New(command.UserId)
+	userId, err := sharedUserId.New(createTransactionCommand.UserId)
 	if err != nil {
 		return err
 	}
 
-	destinationUserId, err := sharedUserId.New(command.DestinationUserId)
+	destinationUserId, err := sharedUserId.New(createTransactionCommand.DestinationUserId)
 	if err != nil {
 		return err
 	}
@@ -55,7 +68,7 @@ func (h CreateTransactionCommandHandler) Handle(command CreateTransactionCommand
 		*transId,
 		*userId,
 		*destinationUserId,
-		money.NewFromPrimitives(command.Amount, command.Currency),
+		money.NewFromPrimitives(createTransactionCommand.Amount, createTransactionCommand.Currency),
 		h.timeProvider.Now(),
 	)
 

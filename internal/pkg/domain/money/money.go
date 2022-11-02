@@ -5,6 +5,10 @@ type Money struct {
 	currency Currency
 }
 
+func New(amount Amount, currency Currency) Money {
+	return Money{amount: amount, currency: currency}
+}
+
 func NewFromPrimitives(amount int64, currency string) Money {
 	return Money{amount: Amount(amount), currency: Currency(currency)}
 }
@@ -26,4 +30,17 @@ func (m Money) Add(amount Money) Money {
 		amount:   m.amount + amount.Amount(),
 		currency: m.Currency(),
 	}
+}
+
+func (m Money) Subtract(amount Money) Money {
+	return Money{
+		amount:   m.amount - amount.Amount(),
+		currency: m.Currency(),
+	}
+}
+
+func (m Money) IsLessThan(amount Money) bool {
+	// ToDo check currency
+
+	return m.amount < amount.Amount()
 }
